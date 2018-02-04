@@ -7,8 +7,14 @@
 //
 
 #import "ViewController.h"
+#import "CoreLocation/CoreLocation.h"
+#import "MapKit/MapKit.h"
 
-@interface ViewController ()
+@interface ViewController () <MKMapViewDelegate, CLLocationManagerDelegate>
+
+@property (strong, nonatomic) CLLocationManager *locationManager;
+@property (weak, nonatomic) IBOutlet MKMapView *mapView;
+
 
 @end
 
@@ -16,7 +22,11 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
+    
+    self.locationManager = [[CLLocationManager alloc] init];
+    self.locationManager.delegate = self;
+
+    self.mapView.showsUserLocation = YES;
 }
 
 
@@ -24,6 +34,29 @@
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
+
+-(void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray<CLLocation *> *)locations {
+    
+    CLLocation *latestLocation = [locations lastObject];
+    [self.mapView setRegion:MKCoordinateRegionMake(latestLocation.coordinate, MKCoordinateSpanMake(0.05, 0.05))];
+    NSLog(@"location updated");
+}
+
+- (void) locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error {
+    
+    NSLog(@"Fail to locate location");
+}
+
+-(void)locationManager:(CLLocationManager *)manager didChangeAuthorizationStatus:(CLAuthorizationStatus)status {
+    
+    if (status == kCLAuthorizationStatusAuthorizedWhenInUse) {
+        
+        [self.locationManager requestWhenInUseAuthorization];
+        [manager requestLocation];
+    }
+}
+
+
 
 
 @end
